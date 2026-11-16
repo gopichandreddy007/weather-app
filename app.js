@@ -105,7 +105,13 @@ function showCurrentWeather(place, weather) {
   document.getElementById("weather-icon").textContent = info.icon;
   document.getElementById("description").textContent = info.text;
   document.getElementById("city-name").textContent = `${place.name}, ${place.country}`;
-  document.getElementById("date-text").textContent = new Date().toDateString();
+  // current.time is already in the city's local time (we asked for timezone=auto)
+  const localTime = new Date(current.time);
+  document.getElementById("date-text").textContent =
+    localTime.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }) +
+    " · " +
+    localTime.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) +
+    " local time";
   document.getElementById("temperature").textContent = formatTemp(current.temperature_2m) + unit;
   document.getElementById("feels-like").textContent = formatTemp(current.apparent_temperature) + unit;
   document.getElementById("humidity").textContent = current.relative_humidity_2m + "%";
