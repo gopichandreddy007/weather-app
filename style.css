@@ -185,3 +185,24 @@ h3 {
     padding-bottom: 5px;
   }
 }
+
+/* ---------- background changes with the weather ---------- */
+body {
+  transition: background 0.5s;
+}
+
+body.cloudy {
+  background: linear-gradient(135deg, #8e9eab, #5f7385);
+}
+
+body.rainy {
+  background: linear-gradient(135deg, #4b6584, #2c3e50);
+}
+
+body.snowy {
+  background: linear-gradient(135deg, #a8c0d8, #6f8fb0);
+}
+
+body.stormy {
+  background: linear-gradient(135deg, #434343, #1f1c2c);
+}

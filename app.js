@@ -59,6 +59,18 @@ function getWeatherInfo(code) {
   return weatherCodes[code] || { text: "Unknown", icon: "🌡️" };
 }
 
+// pick a background theme based on the weather code
+function setBackground(code) {
+  let theme = ""; // default blue sky
+  if (code === 3 || code === 45 || code === 48) theme = "cloudy";
+  else if (code >= 51 && code <= 67) theme = "rainy";
+  else if (code >= 80 && code <= 82) theme = "rainy";
+  else if ((code >= 71 && code <= 77) || code === 85 || code === 86) theme = "snowy";
+  else if (code >= 95) theme = "stormy";
+
+  document.body.className = theme;
+}
+
 // step 1: turn a city name into latitude and longitude
 async function getCityLocation(city) {
   const url = `${GEO_URL}?name=${encodeURIComponent(city)}&count=1&language=en&format=json`;
@@ -102,6 +114,7 @@ async function getWeather(lat, lon) {
 function showCurrentWeather(place, weather) {
   const current = weather.current;
   const info = getWeatherInfo(current.weather_code);
+  setBackground(current.weather_code);
 
   document.getElementById("weather-icon").textContent = info.icon;
   document.getElementById("description").textContent = info.text;
