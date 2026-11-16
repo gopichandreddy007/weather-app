@@ -8,6 +8,7 @@ const currentCard = document.getElementById("current-weather");
 const forecastSection = document.getElementById("forecast-section");
 const forecastBox = document.getElementById("forecast");
 const unitBtn = document.getElementById("unit-btn");
+const messageBox = document.getElementById("message");
 
 // the api gives celsius, we convert to fahrenheit only when showing it
 let unit = "C";
@@ -61,6 +62,9 @@ function getWeatherInfo(code) {
 async function getCityLocation(city) {
   const url = `${GEO_URL}?name=${encodeURIComponent(city)}&count=1&language=en&format=json`;
   const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error("Geocoding request failed: " + res.status);
+  }
   const data = await res.json();
 
   if (!data.results || data.results.length === 0) {
@@ -88,6 +92,9 @@ async function getWeather(lat, lon) {
   });
 
   const res = await fetch(`${WEATHER_URL}?${params}`);
+  if (!res.ok) {
+    throw new Error("Weather request failed: " + res.status);
+  }
   return res.json();
 }
 
@@ -132,18 +139,42 @@ function showForecast(weather) {
   forecastSection.classList.remove("hidden");
 }
 
-async function searchCity(city) {
-  const place = await getCityLocation(city);
-  if (!place) {
-    alert("City not found");
-    return;
-  }
+function showMessage(text, isError = false) {
+  messageBox.textContent = text;
+  messageBox.classList.toggle("error", isError);
+  messageBox.classList.remove("hidden");
+}
 
-  const weather = await getWeather(place.lat, place.lon);
-  lastPlace = place;
-  lastWeather = weather;
-  showCurrentWeather(place, weather);
-  showForecast(weather);
+function hideMessage() {
+  messageBox.classList.add("hidden");
+}
+
+function hideWeather() {
+  currentCard.classList.add("hidden");
+  forecastSection.classList.add("hidden");
+}
+
+async function searchCity(city) {
+  showMessage("Loading weather...");
+  hideWeather();
+
+  try {
+    const place = await getCityLocation(city);
+    if (!place) {
+      showMessage(`Couldn't find "${city}". Check the spelling and try again.`, true);
+      return;
+    }
+
+    const weather = await getWeather(place.lat, place.lon);
+    lastPlace = place;
+    lastWeather = weather;
+    hideMessage();
+    showCurrentWeather(place, weather);
+    showForecast(weather);
+  } catch (err) {
+    console.error(err);
+    showMessage("Something went wrong. Please check your internet and try again.", true);
+  }
 }
 
 unitBtn.addEventListener("click", () => {
