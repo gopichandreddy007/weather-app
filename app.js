@@ -9,6 +9,7 @@ const forecastSection = document.getElementById("forecast-section");
 const forecastBox = document.getElementById("forecast");
 const unitBtn = document.getElementById("unit-btn");
 const messageBox = document.getElementById("message");
+const locationBtn = document.getElementById("location-btn");
 
 // the api gives celsius, we convert to fahrenheit only when showing it
 let unit = "C";
@@ -104,7 +105,9 @@ function showCurrentWeather(place, weather) {
 
   document.getElementById("weather-icon").textContent = info.icon;
   document.getElementById("description").textContent = info.text;
-  document.getElementById("city-name").textContent = `${place.name}, ${place.country}`;
+  document.getElementById("city-name").textContent = place.country
+    ? `${place.name}, ${place.country}`
+    : place.name;
   // current.time is already in the city's local time (we asked for timezone=auto)
   const localTime = new Date(current.time);
   document.getElementById("date-text").textContent =
@@ -171,18 +174,53 @@ async function searchCity(city) {
       return;
     }
 
-    const weather = await getWeather(place.lat, place.lon);
-    lastPlace = place;
-    lastWeather = weather;
+    await loadWeather(place);
     localStorage.setItem("lastCity", place.name);
-    hideMessage();
-    showCurrentWeather(place, weather);
-    showForecast(weather);
   } catch (err) {
     console.error(err);
     showMessage("Something went wrong. Please check your internet and try again.", true);
   }
 }
+
+// shared by city search and "my location"
+async function loadWeather(place) {
+  const weather = await getWeather(place.lat, place.lon);
+  lastPlace = place;
+  lastWeather = weather;
+  hideMessage();
+  showCurrentWeather(place, weather);
+  showForecast(weather);
+}
+
+locationBtn.addEventListener("click", () => {
+  if (!navigator.geolocation) {
+    showMessage("Your browser doesn't support location.", true);
+    return;
+  }
+
+  showMessage("Getting your location...");
+  hideWeather();
+
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      const place = {
+        name: "Your location",
+        country: "",
+        lat: position.coords.latitude,
+        lon: position.coords.longitude,
+      };
+      try {
+        await loadWeather(place);
+      } catch (err) {
+        console.error(err);
+        showMessage("Something went wrong. Please try again.", true);
+      }
+    },
+    () => {
+      showMessage("Location permission was denied. Search for a city instead.", true);
+    }
+  );
+});
 
 unitBtn.addEventListener("click", () => {
   unit = unit === "C" ? "F" : "C";
