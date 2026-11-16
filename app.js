@@ -5,6 +5,8 @@ const WEATHER_URL = "https://api.open-meteo.com/v1/forecast";
 const searchForm = document.getElementById("search-form");
 const cityInput = document.getElementById("city-input");
 const currentCard = document.getElementById("current-weather");
+const forecastSection = document.getElementById("forecast-section");
+const forecastBox = document.getElementById("forecast");
 
 // Open-Meteo sends a number (WMO weather code), so we map it to text and an icon
 const weatherCodes = {
@@ -67,7 +69,9 @@ async function getWeather(lat, lon) {
     latitude: lat,
     longitude: lon,
     current: "temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m",
+    daily: "weather_code,temperature_2m_max,temperature_2m_min",
     timezone: "auto",
+    forecast_days: 6, // today + next 5 days
   });
 
   const res = await fetch(`${WEATHER_URL}?${params}`);
@@ -90,6 +94,31 @@ function showCurrentWeather(place, weather) {
   currentCard.classList.remove("hidden");
 }
 
+function showForecast(weather) {
+  const daily = weather.daily;
+  forecastBox.innerHTML = "";
+
+  // start from 1 to skip today, we already show it above
+  for (let i = 1; i < daily.time.length; i++) {
+    const info = getWeatherInfo(daily.weather_code[i]);
+    // add T12:00 so the date doesn't shift a day because of timezones
+    const dayName = new Date(daily.time[i] + "T12:00").toLocaleDateString("en-US", { weekday: "short" });
+
+    const dayCard = document.createElement("div");
+    dayCard.className = "forecast-day";
+    dayCard.title = info.text;
+    dayCard.innerHTML = `
+      <p>${dayName}</p>
+      <p class="icon">${info.icon}</p>
+      <p><strong>${Math.round(daily.temperature_2m_max[i])}°</strong>
+         <span class="muted">${Math.round(daily.temperature_2m_min[i])}°</span></p>
+    `;
+    forecastBox.appendChild(dayCard);
+  }
+
+  forecastSection.classList.remove("hidden");
+}
+
 async function searchCity(city) {
   const place = await getCityLocation(city);
   if (!place) {
@@ -99,6 +128,7 @@ async function searchCity(city) {
 
   const weather = await getWeather(place.lat, place.lon);
   showCurrentWeather(place, weather);
+  showForecast(weather);
 }
 
 searchForm.addEventListener("submit", (e) => {
