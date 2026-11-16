@@ -155,3 +155,33 @@ h3 {
 .hidden {
   display: none;
 }
+
+/* ---------- mobile ---------- */
+@media (max-width: 500px) {
+  h1 {
+    font-size: 26px;
+  }
+
+  #search-form button {
+    padding: 12px 14px;
+  }
+
+  .big-icon {
+    font-size: 50px;
+  }
+
+  .big-temp {
+    font-size: 44px;
+  }
+
+  .card {
+    padding: 20px 15px;
+  }
+
+  /* forecast scrolls sideways on small screens */
+  .forecast {
+    grid-template-columns: repeat(5, 80px);
+    overflow-x: auto;
+    padding-bottom: 5px;
+  }
+}
