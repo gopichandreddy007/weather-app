@@ -174,6 +174,7 @@ async function searchCity(city) {
     const weather = await getWeather(place.lat, place.lon);
     lastPlace = place;
     lastWeather = weather;
+    localStorage.setItem("lastCity", place.name);
     hideMessage();
     showCurrentWeather(place, weather);
     showForecast(weather);
@@ -185,6 +186,7 @@ async function searchCity(city) {
 
 unitBtn.addEventListener("click", () => {
   unit = unit === "C" ? "F" : "C";
+  localStorage.setItem("unit", unit);
   // button shows the unit you can switch to
   unitBtn.textContent = unit === "C" ? "°F" : "°C";
 
@@ -202,3 +204,20 @@ searchForm.addEventListener("submit", (e) => {
     searchCity(city);
   }
 });
+
+// when the page opens, load the saved unit and last searched city
+function loadSavedSettings() {
+  const savedUnit = localStorage.getItem("unit");
+  if (savedUnit === "C" || savedUnit === "F") {
+    unit = savedUnit;
+    unitBtn.textContent = unit === "C" ? "°F" : "°C";
+  }
+
+  const savedCity = localStorage.getItem("lastCity");
+  if (savedCity) {
+    cityInput.value = savedCity;
+    searchCity(savedCity);
+  }
+}
+
+loadSavedSettings();
