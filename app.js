@@ -7,6 +7,19 @@ const cityInput = document.getElementById("city-input");
 const currentCard = document.getElementById("current-weather");
 const forecastSection = document.getElementById("forecast-section");
 const forecastBox = document.getElementById("forecast");
+const unitBtn = document.getElementById("unit-btn");
+
+// the api gives celsius, we convert to fahrenheit only when showing it
+let unit = "C";
+let lastPlace = null;
+let lastWeather = null;
+
+function formatTemp(celsius) {
+  if (unit === "F") {
+    return Math.round(celsius * 9 / 5 + 32) + "°";
+  }
+  return Math.round(celsius) + "°";
+}
 
 // Open-Meteo sends a number (WMO weather code), so we map it to text and an icon
 const weatherCodes = {
@@ -86,8 +99,8 @@ function showCurrentWeather(place, weather) {
   document.getElementById("description").textContent = info.text;
   document.getElementById("city-name").textContent = `${place.name}, ${place.country}`;
   document.getElementById("date-text").textContent = new Date().toDateString();
-  document.getElementById("temperature").textContent = Math.round(current.temperature_2m) + "°C";
-  document.getElementById("feels-like").textContent = Math.round(current.apparent_temperature) + "°C";
+  document.getElementById("temperature").textContent = formatTemp(current.temperature_2m) + unit;
+  document.getElementById("feels-like").textContent = formatTemp(current.apparent_temperature) + unit;
   document.getElementById("humidity").textContent = current.relative_humidity_2m + "%";
   document.getElementById("wind").textContent = Math.round(current.wind_speed_10m) + " km/h";
 
@@ -110,8 +123,8 @@ function showForecast(weather) {
     dayCard.innerHTML = `
       <p>${dayName}</p>
       <p class="icon">${info.icon}</p>
-      <p><strong>${Math.round(daily.temperature_2m_max[i])}°</strong>
-         <span class="muted">${Math.round(daily.temperature_2m_min[i])}°</span></p>
+      <p><strong>${formatTemp(daily.temperature_2m_max[i])}</strong>
+         <span class="muted">${formatTemp(daily.temperature_2m_min[i])}</span></p>
     `;
     forecastBox.appendChild(dayCard);
   }
@@ -127,9 +140,23 @@ async function searchCity(city) {
   }
 
   const weather = await getWeather(place.lat, place.lon);
+  lastPlace = place;
+  lastWeather = weather;
   showCurrentWeather(place, weather);
   showForecast(weather);
 }
+
+unitBtn.addEventListener("click", () => {
+  unit = unit === "C" ? "F" : "C";
+  // button shows the unit you can switch to
+  unitBtn.textContent = unit === "C" ? "°F" : "°C";
+
+  // redraw with the data we already have, no need to call the api again
+  if (lastWeather) {
+    showCurrentWeather(lastPlace, lastWeather);
+    showForecast(lastWeather);
+  }
+});
 
 searchForm.addEventListener("submit", (e) => {
   e.preventDefault();
