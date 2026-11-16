@@ -31,6 +31,7 @@ h1 {
 
 #search-form input {
   flex: 1;
+  min-width: 0; /* lets the input shrink so buttons don't overflow */
   padding: 12px 15px;
   border: none;
   border-radius: 25px;
@@ -162,8 +163,13 @@ h3 {
     font-size: 26px;
   }
 
+  #search-form {
+    gap: 6px;
+  }
+
   #search-form button {
-    padding: 12px 14px;
+    padding: 12px 12px;
+    flex-shrink: 0;
   }
 
   .big-icon {
